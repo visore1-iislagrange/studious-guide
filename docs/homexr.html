@@ -128,7 +128,7 @@
         labelMesh.position.set(0, 0, 0.049);
         group.add(labelMesh);
 
-        group.userData = { pressed: false };
+        group.userData = { pressed: false, label: label };
         return group;
       }
 
@@ -232,6 +232,9 @@
 
         setTimeout(() => {
           button.userData.pressed = false;
+          if (button.userData.label === 'sin') {
+            window.location.href = 'sin.html';
+          }
         }, 240);
       }
 
