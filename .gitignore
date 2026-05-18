@@ -1,2 +1,3 @@
 node_modules/
 docs/vendor/
+post-create-command.sh.log
