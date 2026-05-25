@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Personaggi dell'Impero Romano</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f2e6d8;
+        --surface: #ffffff;
+        --border: #d8c1a1;
+        --text: #2c2a29;
+        --accent: #8b4d1c;
+        --accent-soft: #d8b18a;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        min-height: 100%;
+        font-family: "Inter", system-ui, sans-serif;
+        background: radial-gradient(circle at top left, #f7ebde 0%, #e5d4bf 45%, #d7b98a 100%);
+        color: var(--text);
+      }
+
+      body {
+        display: flex;
+        justify-content: center;
+        padding: 2rem 1rem;
+      }
+
+      .page {
+        width: min(1200px, 100%);
+        display: grid;
+        gap: 1.5rem;
+        grid-template-columns: 1fr 1.5fr;
+        align-items: start;
+      }
+
+      header {
+        grid-column: 1 / -1;
+        padding: 1.8rem 2rem;
+        background: rgba(255, 255, 255, 0.92);
+        border: 1px solid var(--border);
+        border-radius: 1.25rem;
+        box-shadow: 0 18px 45px rgba(92, 55, 19, 0.12);
+      }
+
+      header h1 {
+        margin: 0 0 0.5rem;
+        font-size: clamp(2rem, 3vw, 3rem);
+        letter-spacing: -0.03em;
+      }
+
+      header p {
+        margin: 0;
+        line-height: 1.7;
+        font-size: 1rem;
+        color: #4b3f34;
+      }
+
+      .cards {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        padding: 1rem;
+        transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+        cursor: pointer;
+        text-align: left;
+        display: grid;
+        gap: 0.85rem;
+      }
+
+      .card:hover,
+      .card.active {
+        transform: translateY(-3px);
+        border-color: var(--accent);
+        box-shadow: 0 12px 24px rgba(139, 77, 28, 0.16);
+      }
+
+      .card-image {
+        width: 100%;
+        min-height: 120px;
+        border-radius: 0.95rem;
+        overflow: hidden;
+        background: linear-gradient(180deg, rgba(221, 181, 134, 0.2), rgba(139, 77, 28, 0.06));
+      }
+
+      .card-image svg {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      .card h2 {
+        margin: 0;
+        font-size: 1.15rem;
+      }
+
+      .card p {
+        margin: 0;
+        color: #6b5a4c;
+      }
+
+      .details {
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid var(--border);
+        border-radius: 1.25rem;
+        padding: 1.8rem;
+        min-height: 22rem;
+        display: grid;
+        gap: 1.5rem;
+      }
+
+      .character-preview {
+        display: grid;
+        gap: 1.5rem;
+      }
+
+      .character-header {
+        display: grid;
+        gap: 1rem;
+      }
+
+      .character-image-large {
+        width: 100%;
+        max-width: 420px;
+        aspect-ratio: 4 / 3;
+        border-radius: 1.25rem;
+        overflow: hidden;
+        background: linear-gradient(180deg, rgba(221, 181, 134, 0.15), rgba(139, 77, 28, 0.08));
+      }
+
+      .character-image-large svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .details h2 {
+        margin: 0;
+        font-size: clamp(2rem, 2.5vw, 2.5rem);
+      }
+
+      .details p {
+        margin: 0;
+        line-height: 1.75;
+        color: #4d4236;
+      }
+
+      .meta {
+        display: grid;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .meta span {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 0.85rem;
+        border-radius: 999px;
+        background: #f5e6d7;
+        color: #7e5c44;
+        font-size: 0.95rem;
+      }
+
+      .details footer {
+        padding-top: 0.5rem;
+        border-top: 1px solid #e5d4bf;
+        color: #7a6658;
+      }
+
+      .map-panel {
+        background: #fff;
+        border: 1px solid #d8c1a1;
+        border-radius: 1rem;
+        padding: 1.4rem;
+        box-shadow: inset 0 0 0 1px rgba(216, 193, 161, 0.4);
+      }
+
+      .map-panel h3 {
+        margin: 0 0 0.75rem;
+        font-size: 1.35rem;
+      }
+
+      #mapCanvas {
+        width: 100%;
+        height: 500px;
+        border-radius: 1rem;
+        border: 1px solid #e4d3b8;
+        display: block;
+      }
+
+      .map-container {
+        width: 100%;
+        overflow: hidden;
+        border-radius: 1rem;
+        background: linear-gradient(180deg, #f8f1e6, #efdfc8);
+        border: 1px solid #e4d3b8;
+      }
+
+      .map-svg {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      .map-region {
+        cursor: pointer;
+        fill: #c9a86d;
+        stroke: #8b5e2b;
+        stroke-width: 2;
+        transition: fill 0.2s ease, transform 0.2s ease;
+      }
+
+      .map-region:hover,
+      .map-region.active {
+        fill: #f0d29b;
+      }
+
+      .map-info {
+        margin-top: 1rem;
+        padding: 1rem;
+        border-radius: 1rem;
+        background: #fff7ee;
+        border: 1px solid #ead2b4;
+        color: #5f452e;
+        line-height: 1.75;
+      }
+
+      @media (max-width: 960px) {
+        .page {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <h1>I personaggi più importanti dell'Impero Romano</h1>
+        <p>Seleziona un personaggio per leggere la sua storia e usa la mappa interattiva per scoprire le province romane.</p>
+      </header>
+
+      <section class="cards" id="characterList"></section>
+
+      <article class="details" id="detailsPanel">
+        <div class="character-preview">
+          <div class="character-header">
+            <h2 id="characterName">Seleziona un personaggio</h2>
+            <div class="meta" id="characterMeta"></div>
+          </div>
+
+          <div class="character-image-large" id="characterImage"></div>
+          <p id="characterDescription">Clicca su un personaggio nell’elenco per visualizzare una sua immagine, i dettagli e l’influenza storica.</p>
+          <footer id="detailsFooter"></footer>
+        </div>
+
+        <section class="map-panel">
+          <h3>Mappa interattiva dell’Impero Romano</h3>
+          <div class="map-container">
+            <svg class="map-svg" viewBox="0 0 860 520" xmlns="http://www.w3.org/2000/svg">
+              <rect x="0" y="0" width="860" height="520" fill="transparent" />
+              <path id="provincia-italia" class="map-region" data-id="italia" d="M380 120 L440 130 L480 220 L460 300 L420 330 L360 310 L340 250 Z" />
+              <path id="provincia-gallia" class="map-region" data-id="gallia" d="M190 90 L340 110 L360 250 L320 260 L250 210 L210 160 Z" />
+              <path id="provincia-hispania" class="map-region" data-id="hispania" d="M40 180 L200 190 L220 280 L180 340 L80 330 Z" />
+              <path id="provincia-britannia" class="map-region" data-id="britannia" d="M230 10 L320 30 L340 110 L180 100 Z" />
+              <path id="provincia-africa" class="map-region" data-id="africa" d="M320 340 L500 350 L520 420 L420 470 L310 430 Z" />
+              <path id="provincia-aegyptus" class="map-region" data-id="aegyptus" d="M520 360 L630 340 L700 390 L660 450 L570 430 Z" />
+              <path id="provincia-asia" class="map-region" data-id="asia" d="M540 180 L720 190 L760 250 L720 320 L630 320 L590 260 Z" />
+              <text x="410" y="255" font-family="sans-serif" font-size="20" fill="#7a5c3b">ROMA</text>
+            </svg>
+          </div>
+          <div class="map-info" id="mapInfo">Clicca su una provincia della mappa per scoprire il suo nome e il suo ruolo nell’Impero Romano.</div>
+        </section>
+      </article>
+    </div>
+
+    <script>
+      const characters = [
+        {
+          name: 'Gaio Giulio Cesare',
+          title: 'Generale, politico e dittatore',
+          era: '100 a.C. – 44 a.C.',
+          description: 'Giulio Cesare trasformò la Repubblica con vittorie militari in Gallia, riforme politiche e la nomina a dittatore a vita. La sua morte segnò l’inizio della fine della Repubblica e l’ascesa dell’Impero.',
+          influence: 'Riformò l’amministrazione, introdusse il calendario giuliano e aprì la strada al Principato di Augusto.',
+          imageSvg: `<svg viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg"><rect width="360" height="360" fill="#f7ece2"/><circle cx="180" cy="120" r="80" fill="#d19c6c"/><path d="M100 210 Q180 270 260 210" fill="#a77947"/><path d="M150 130 Q180 80 210 130" fill="#f1deb8"/><path d="M120 85 Q180 45 240 85" fill="#f8e4b7"/><path d="M145 75 C160 40 200 40 215 75" fill="none" stroke="#8b5e2b" stroke-width="14" stroke-linecap="round"/><path d="M106 145 C124 135 130 155 150 150" fill="none" stroke="#7a5031" stroke-width="8" stroke-linecap="round"/><path d="M210 145 C210 145 220 152 230 142" fill="none" stroke="#7a5031" stroke-width="8" stroke-linecap="round"/></svg>`
+        },
+        {
+          name: 'Augusto',
+          title: 'Primo imperatore romano',
+          era: '63 a.C. – 14 d.C.',
+          description: 'Augusto stabilì l’Impero dopo la vittoria su Marco Antonio e Cleopatra, fondando il Principato e promuovendo la pace romana. È ricordato per le riforme dell’esercito e l’edilizia pubblica che trasformarono Roma.',
+          influence: 'Consolidò l’autorità imperiale e lanciò la Pax Romana, inaugurando un secolo di stabilità e crescita.',
+          imageSvg: `<svg viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg"><rect width="360" height="360" fill="#efe2d1"/><circle cx="180" cy="120" r="80" fill="#c69c78"/><path d="M120 210 Q180 270 240 210" fill="#9b6f4b"/><path d="M130 120 Q180 80 230 120" fill="#f5d59f"/><path d="M90 95 Q180 25 270 95" fill="none" stroke="#8c5b2f" stroke-width="14" stroke-linecap="round"/><path d="M135 150 C145 135 155 145 165 150" fill="none" stroke="#7d5234" stroke-width="8" stroke-linecap="round"/><path d="M200 150 C210 140 220 150 230 145" fill="none" stroke="#7d5234" stroke-width="8" stroke-linecap="round"/></svg>`
+        },
+        {
+          name: 'Traiano',
+          title: 'Imperatore e condottiero',
+          era: '53 d.C. – 117 d.C.',
+          description: 'Traiano estese l’Impero al suo massimo splendore, conquistando la Dacia e costruendo grandi opere come la Colonna di Traiano. È ricordato come un sovrano energico e generoso verso i suoi sudditi.',
+          influence: 'L’espansione territoriale e le infrastrutture pubbliche resero Roma più ricca e potente.',
+          imageSvg: `<svg viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg"><rect width="360" height="360" fill="#f4e9dd"/><circle cx="180" cy="120" r="80" fill="#c18c61"/><path d="M115 210 Q180 275 245 210" fill="#9f7355"/><path d="M145 100 Q180 60 215 100" fill="#f1ddab"/><path d="M110 90 Q180 20 250 90" fill="none" stroke="#885b30" stroke-width="14" stroke-linecap="round"/><path d="M140 160 C150 145 170 155 180 165" fill="none" stroke="#764a2b" stroke-width="8" stroke-linecap="round"/><path d="M210 160 C220 150 230 160 240 155" fill="none" stroke="#764a2b" stroke-width="8" stroke-linecap="round"/></svg>`
+        },
+        {
+          name: 'Nerone',
+          title: 'Imperatore controverso',
+          era: '37 d.C. – 68 d.C.',
+          description: 'Nerone è noto per il suo regno travagliato, il grande incendio di Roma e le persecuzioni dei cristiani. La sua figura rimane simbolo di eccessi e crisi, ma fu anche promotore di eventi culturali ed edilizi.',
+          influence: 'Il suo governo terminò con una rivoluzione e una crisi che portarono al breve anno dei quattro imperatori.',
+          imageSvg: `<svg viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg"><rect width="360" height="360" fill="#f1e2d2"/><circle cx="180" cy="120" r="80" fill="#c56d4c"/><path d="M120 210 Q180 270 240 210" fill="#9d5a45"/><path d="M145 110 Q180 70 215 110" fill="#f1c79a"/><path d="M105 85 Q180 25 255 85" fill="none" stroke="#7d4a2a" stroke-width="14" stroke-linecap="round"/><path d="M130 150 C145 132 160 150 175 152" fill="none" stroke="#6f4130" stroke-width="8" stroke-linecap="round"/><path d="M215 150 C225 142 235 150 245 145" fill="none" stroke="#6f4130" stroke-width="8" stroke-linecap="round"/></svg>`
+        },
+        {
+          name: 'Costantino I',
+          title: 'Imperatore cristiano',
+          era: '272 d.C. – 337 d.C.',
+          description: 'Costantino trasformò l’Impero con la conversione al cristianesimo e la fondazione di Costantinopoli. Le sue riforme religiose e amministrative influenzarono profondamente la storia europea successiva.',
+          influence: 'Sostenne il cristianesimo, riorganizzò l’Impero e consolidò nuovi centri di potere in Oriente.',
+          imageSvg: `<svg viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg"><rect width="360" height="360" fill="#ece3d7"/><circle cx="180" cy="120" r="80" fill="#b07f59"/><path d="M125 205 Q180 255 235 205" fill="#8b5f46"/><path d="M140 105 Q180 72 220 105" fill="#f1dbb2"/><path d="M98 90 Q180 20 262 90" fill="none" stroke="#8b5932" stroke-width="14" stroke-linecap="round"/><path d="M138 150 C150 135 170 145 180 155" fill="none" stroke="#70452f" stroke-width="8" stroke-linecap="round"/><path d="M210 150 C220 145 230 152 240 146" fill="none" stroke="#70452f" stroke-width="8" stroke-linecap="round"/></svg>`
+        }
+      ];
+
+      const provinces = {
+        italia: {
+          name: 'Italia',
+          description: 'Centro politico e culturale dell’Impero, cuore della città di Roma e luogo di molti eventi storici fondamentali.'
+        },
+        gallia: {
+          name: 'Gallia',
+          description: 'Provincia conquistata da Cesare, ricca di risorse e strategica per il controllo dell’Europa occidentale.'
+        },
+        hispania: {
+          name: 'Hispania',
+          description: 'Importante provincia agricola e mineraria, da cui provenivano molti soldati e ufficiali romani.'
+        },
+        britannia: {
+          name: 'Britannia',
+          description: 'Provincia di frontiera con forte presenza militare e costruzioni difensive come il Vallo di Adriano.'
+        },
+        africa: {
+          name: 'Africa',
+          description: 'Ricca regione mediterranea, fondamentale per il grano e le risorse alimentari dell’Impero.'
+        },
+        aegyptus: {
+          name: 'Aegyptus',
+          description: 'Granaio orientale romano, con Alessandria come centro culturale e commerciale di grande importanza.'
+        },
+        asia: {
+          name: 'Asia',
+          description: 'Provincia orientale di grande valore commerciale e culturale, ricca di città e vie di scambio.'
+        }
+      };
+
+      const listElement = document.getElementById('characterList');
+      const titleElement = document.getElementById('characterName');
+      const metaElement = document.getElementById('characterMeta');
+      const descriptionElement = document.getElementById('characterDescription');
+      const footerElement = document.getElementById('detailsFooter');
+      const characterImage = document.getElementById('characterImage');
+      const mapInfo = document.getElementById('mapInfo');
+
+      function renderCards() {
+        characters.forEach((character, index) => {
+          const card = document.createElement('button');
+          card.type = 'button';
+          card.className = 'card';
+          card.dataset.index = index;
+          card.innerHTML = `
+            <div class="card-image">${character.imageSvg}</div>
+            <div>
+              <h2>${character.name}</h2>
+              <p>${character.title}</p>
+            </div>
+          `;
+          card.addEventListener('click', () => selectCharacter(index, card));
+          listElement.appendChild(card);
+        });
+      }
+
+      function selectCharacter(index, cardElement) {
+        const character = characters[index];
+        titleElement.textContent = character.name;
+        metaElement.innerHTML = `
+          <span>${character.title}</span>
+          <span>${character.era}</span>
+        `;
+        descriptionElement.textContent = character.description;
+        footerElement.textContent = character.influence;
+        characterImage.innerHTML = character.imageSvg;
+
+        document.querySelectorAll('.card').forEach((card) => {
+          card.classList.toggle('active', card === cardElement);
+        });
+      }
+
+      function initializeMap() {
+        // Inizializza la scena 3D con Three.js
+        const canvas = document.getElementById('mapCanvas');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+        renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+        renderer.setClearColor(0xf8f1e6);
+
+        camera.position.z = 1.5;
+
+        // Carica la texture della mappa dall'immagine web
+        const textureLoader = new THREE.TextureLoader();
+        textureLoader.load(
+          'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Roman_Empire_Trajan_117AD.png/1024px-Roman_Empire_Trajan_117AD.png',
+          function(texture) {
+            const geometry = new THREE.PlaneGeometry(2, 1.3);
+            const material = new THREE.MeshBasicMaterial({ map: texture });
+            const mapMesh = new THREE.Mesh(geometry, material);
+            scene.add(mapMesh);
+            
+            // Aggiungi bordi alla mappa
+            const edges = new THREE.EdgesGeometry(geometry);
+            const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x8b5e2b }));
+            scene.add(line);
+          },
+          undefined,
+          function(error) {
+            console.error('Errore nel caricamento della texture:', error);
+            // Fallback: crea una mappa semplice colorata
+            const geometry = new THREE.PlaneGeometry(2, 1.3);
+            const material = new THREE.MeshBasicMaterial({ color: 0xd2b48c });
+            const mapMesh = new THREE.Mesh(geometry, material);
+            scene.add(mapMesh);
+          }
+        );
+
+        // Controlla la rotazione con il mouse
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+
+        canvas.addEventListener('mousedown', (e) => {
+          isDragging = true;
+          previousMousePosition = { x: e.clientX, y: e.clientY };
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+          if (isDragging) {
+            const deltaX = e.clientX - previousMousePosition.x;
+            const deltaY = e.clientY - previousMousePosition.y;
+            
+            scene.children.forEach((child) => {
+              if (child.geometry && child.geometry.type === 'PlaneGeometry') {
+                child.rotation.y += deltaX * 0.01;
+                child.rotation.x += deltaY * 0.01;
+              } else if (child instanceof THREE.LineSegments) {
+                child.rotation.y += deltaX * 0.01;
+                child.rotation.x += deltaY * 0.01;
+              }
+            });
+            
+            previousMousePosition = { x: e.clientX, y: e.clientY };
+          }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+          isDragging = false;
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+          isDragging = false;
+        });
+
+        // Animazione
+        function animate() {
+          requestAnimationFrame(animate);
+          renderer.render(scene, camera);
+        }
+        animate();
+
+        // Gestisci il resize della finestra
+        window.addEventListener('resize', () => {
+          const width = canvas.clientWidth;
+          const height = canvas.clientHeight;
+          camera.aspect = width / height;
+          camera.updateProjectionMatrix();
+          renderer.setSize(width, height);
+        });
+      }
+
+      renderCards();
+      initializeMap();
+    </script>
+  </body>
+</html>
