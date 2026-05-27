@@ -110,13 +110,6 @@
         </div>
 
         <div class="div"></div>
-        <div class="sec-label">Blocco/Sblocco Spostamenti</div>
-        <div class="action-grid">
-          <button class="act-btn" id="dragMenuBtn">SBLOCCA MENU</button>
-          <button class="act-btn" id="dragAxesBtn">SBLOCCA ASSI</button>
-        </div>
-
-        <div class="div"></div>
         <p style="font-size: 0.75rem; color: rgba(167, 139, 250, 0.6); line-height: 1.4; margin: 0.6rem 0;">Viene mostrato un grafico 3D del coseno. Usa i controller VR per trascinare i cursori e gli assi. Accedi ai controlli della camera per muoverti nello spazio.</p>
       </div>
     </div>
@@ -189,8 +182,7 @@
         btnRight: { x: 286, y: 365, w: 40, h: 34, type: 'btn', action: 'camRight' },
         btnZIn:   { x: 346, y: 365, w: 40, h: 34, type: 'btn', action: 'camZIn' },
         btnZOut:  { x: 126, y: 365, w: 40, h: 34, type: 'btn', action: 'camZOut' },
-        modeMenu: { x: 40,  y: 460, w: 206, h: 38, type: 'mode', mode: 'menu' },
-        modeAxes: { x: 266, y: 460, w: 206, h: 38, type: 'mode', mode: 'axes' }
+        modeMenu: { x: 40,  y: 460, w: 206, h: 38, type: 'mode', mode: 'menu' }
       };
 
       function drawVrUi() {
@@ -242,8 +234,7 @@
         vrUiCtx.font = '22px sans-serif';
         vrUiCtx.fillText('📷', 243, 390);
 
-        drawModeBtn(hitBoxes.modeMenu, 'UNLOCK MENU', activeDragMode === 'menu');
-        drawModeBtn(hitBoxes.modeAxes, 'UNLOCK AXES', activeDragMode === 'axes');
+        drawModeBtn(hitBoxes.modeMenu, 'SBLOCCA MENU', activeDragMode === 'menu');
 
         vrUiTexture.needsUpdate = true;
       }
@@ -302,9 +293,6 @@
       document.getElementById('camRight').addEventListener('click', () => { playerRig.position.x += 0.15; });
       document.getElementById('camZIn').addEventListener('click', () => { playerRig.position.z -= 0.15; });
       document.getElementById('camZOut').addEventListener('click', () => { playerRig.position.z += 0.15; });
-
-      document.getElementById('dragMenuBtn').addEventListener('click', () => toggleDragMode('menu', document.getElementById('dragMenuBtn')));
-      document.getElementById('dragAxesBtn').addEventListener('click', () => toggleDragMode('axes', document.getElementById('dragAxesBtn')));
 
       function toggleDragMode(mode, btnEl) {
         if (activeDragMode === mode) {
@@ -479,7 +467,7 @@
               updateSliderFromPosition(box, x);
               return;
             }
-            handleVrUiInteraction(x, y);
+            handleVrUiInteraction(x, y, controller);
             if (activeDragMode === 'menu') {
               draggingUi = true;
               selectedController = controller;
@@ -497,9 +485,11 @@
         draggingUi = false;
         selectedController = null;
         activeSlider = null;
+        activeDragMode = null;
+        drawVrUi();
       }
 
-      function handleVrUiInteraction(x, y) {
+      function handleVrUiInteraction(x, y, controller) {
         for (const key in hitBoxes) {
           const box = hitBoxes[key];
           const inside =
@@ -549,13 +539,12 @@
             }
             return;
           }
-          if (box.type === 'mode') {
-            if (box.mode === 'menu') {
-              toggleDragMode('menu', document.getElementById('dragMenuBtn'));
-            }
-            if (box.mode === 'axes') {
-              toggleDragMode('axes', document.getElementById('dragAxesBtn'));
-            }
+          if (box.type === 'mode' && box.mode === 'menu') {
+            draggingUi = true;
+            selectedController = controller;
+            uiStartPos.copy(vrUiMesh.position);
+            controllerUiStartPos.setFromMatrixPosition(controller.matrixWorld);
+            activeDragMode = 'menu';
             drawVrUi();
             return;
           }
