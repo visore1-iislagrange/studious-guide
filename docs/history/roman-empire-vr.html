@@ -1,99 +1,78 @@
+
 <!DOCTYPE html>
 <html lang="it">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Progetto VR 3D – Antica Roma Immersiva</title>
+<head>
+    <meta charset="utf-8">
+    <title>Chronos SPQR | Linea del Tempo VR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-      body { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; color:#111; line-height:1.6; padding:2rem; background:#f7f7fb }
-      h1{margin-top:0;color:#1b2b4a}
-      section{background:#fff;border-radius:10px;padding:1.1rem 1.2rem;margin:1rem 0;box-shadow:0 6px 18px rgba(27,43,74,0.06)}
-      ul{margin:0.5rem 0 0 1.2rem}
-      .small{color:#52607a;font-size:0.95rem}
+        body { 
+            margin: 0; 
+            background: #050508; 
+            color: #ffffff; 
+            font-family: 'Inter', sans-serif; 
+            overflow: hidden; 
+        }
+        .hero { 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            background: radial-gradient(circle at center, #e90f8e 0%, #eb09e4 100%); 
+        }
+        h1 { 
+            font-family: 'Cinzel', serif; 
+            font-size: 4rem; 
+            color: #00fff0; 
+            margin: 0; 
+            letter-spacing: 6px; 
+            text-shadow: 0 0 30px rgba(0, 255, 240, 0.4); 
+            text-align: center;
+        }
+        .subtitle {
+            font-family: 'Cinzel', serif;
+            color: #8e9bb0;
+            letter-spacing: 3px;
+            margin-top: 10px;
+            font-size: 1.1rem;
+        }
+        p { 
+            font-size: 1.1rem; 
+            color: #a2aab8; 
+            max-width: 600px; 
+            text-align: center; 
+            line-height: 1.8; 
+            margin-top: 25px;
+        }
+        .cta-container { margin-top: 40px; }
+        .btn { 
+            padding: 16px 40px; 
+            border-radius: 0px; 
+            text-decoration: none; 
+            font-weight: bold; 
+            text-transform: uppercase; 
+            letter-spacing: 2px; 
+            transition: all 0.3s ease; 
+            border: 2px solid #00fff0; 
+            background: transparent; 
+            color: #00fff0;
+        }
+        .btn:hover { 
+            background: #00fff0; 
+            color: #d8d8f6;
+            box-shadow: 0 0 30px rgba(0, 255, 240, 0.6); 
+        }
     </style>
-  </head>
-  <body>
-    <h1>Progetto VR 3D – Antica Roma Immersiva</h1>
-
-    <section>
-      <h2>Descrizione generale</h2>
-      <p>Esperienza in realtà virtuale che ricostruisce l'Impero Romano in 3D per offrire un percorso formativo e immersivo. L'utente può esplorare ambienti storici ricostruiti (architetture, mercati, piazze), interagire con personaggi ed oggetti e consultare contenuti informativi multimediali.</p>
-    </section>
-
-    <section>
-      <h2>Obiettivo</h2>
-      <p>Trasformare lo studio della storia romana in un'esperienza interattiva e coinvolgente, permettendo agli utenti di «vivere» gli spazi e gli eventi dell'antica Roma invece di limitarne lo studio teorico.</p>
-    </section>
-
-    <section>
-      <h2>Colosseo</h2>
-      <ul>
-        <li>Arena centrale con ricostruzione storicamente accurata.</li>
-        <li>Scene di combattimento (ricostruite con finalità educativa, non gore).</li>
-        <li>Spettatori animati sulle gradinate e audio realistico di folla.</li>
-        <li>Illuminazione e atmosfera coerenti con l'epoca e il contesto.</li>
-        <li>Contenuti interattivi: pannelli informativi sugli spettacoli gladiatori.</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Foro Romano</h2>
-      <ul>
-        <li>Ricostruzione del centro politico, sociale ed economico.</li>
-        <li>Mercati con NPC (cittadini e commercianti) e animazioni ambientali.</li>
-        <li>Figure politiche e templi con pannelli informativi interattivi.</li>
-        <li>Interazioni con NPC per apprendere ruoli e funzioni civiche.</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Pantheon</h2>
-      <ul>
-        <li>Ricostruzione architettonica della cupola e dell'oculo centrale.</li>
-        <li>Simulazione dell'illuminazione naturale tramite l'oculo.</li>
-        <li>Contenuti didattici sull'architettura e la religione romana.</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Personaggi storici (NPC)</h2>
-      <p class="small">Personaggi inseriti con ruolo narrativo e informativo.</p>
-      <ul>
-        <li><strong>Giulio Cesare</strong>: guida narrativa sulle conquiste e la transizione alla tarda Repubblica.</li>
-        <li><strong>Augusto</strong>: introduce la nascita dell'Impero e la Pax Romana.</li>
-        <li><strong>Nerone</strong>: racconta eventi controversi come l'incendio di Roma (con approccio critico).</li>
-        <li><strong>Traiano</strong>: illustra il periodo di massima espansione dell'Impero.</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Sistema di interazione VR</h2>
-      <ul>
-        <li>Movimento libero nello spazio (teletrasporto e locomozione libera configurabili).</li>
-        <li>Interazione con oggetti e attivazione di contenuti informativi (audio/testo).</li>
-        <li>Interazione dialogica limitata con NPC (scelte multiple informative).</li>
-        <li>Punti di interesse interattivi con spiegazioni storiche e approfondimenti.</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Audio e atmosfera</h2>
-      <ul>
-        <li>Replay spaziale dei suoni ambientali (rumori di folla, mercati, combattimenti controllati).</li>
-        <li>Musiche ambientali ispirate all'epoca e layering per transizioni dinamiche.</li>
-        <li>Effetti sonori realistici per aumentare immersione e contesto educativo.</li>
-      </ul>
-    </section>
-
-    <section>
-      <h2>Prossimi passi</h2>
-      <ul>
-        <li>Definire lista di asset 3D prioritari (Colosseo, edifici del Foro, interne del Pantheon).</li>
-        <li>Creare mockup di interazione VR e flussi utente (UX).</li>
-        <li>Produzione audio: registrazioni e sound design spaziale.</li>
-        <li>Sviluppo prototipo in engine VR (es. Unity/Unreal) e testing didattico.</li>
-      </ul>
-    </section>
-
-  </body>
+</head>
+<body>
+    <div class="hero">
+        <h1>CHRONOS S.P.Q.R.</h1>
+        <div class="subtitle">Attraverso lo Spazio-Tempo Romano</div>
+        <p>Cammina su una passerella sospesa nel vuoto cosmico della storia. Attraversa i portali temporali e scopri l'evoluzione di Roma dalla fondazione fino al tramonto dell'Impero.</p>
+        <div class="cta-container">
+            <a href="index.html" class="btn">Avvia il Viaggio nel Tempo</a>
+        </div>
+    </div>
+</body>
 </html>
