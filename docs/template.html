@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>WebXR Template</title>
+    <title>Sin Plot XR</title>
     <style>
       body,
       html {
@@ -95,18 +95,25 @@
   </head>
   <body>
     <div id="info">
-      <strong>WebXR template</strong>
-      <p style="margin-top: 0.6rem; margin-bottom: 0;">Questo template è il punto di partenza per creare applicazioni WebXR con Three.js</p>
+      <strong>Sin Plot XR</strong>
+      <div id="sliderContainer">
+        <span id="sliderLabel">x offset:</span>
+        <input type="range" id="xSlider" min="-31.4" max="31.4" step="0.1" value="0" />
+        <span id="xValue">0.0</span>
+      </div>
+      <p style="margin-top: 0.6rem; margin-bottom: 0;">A 3D sine plot is shown with x, y, and z axes. Grab a connected VR controller and use the select trigger to rotate and translate the axis group.</p>
     </div>
     <script type="module">
       import * as THREE from '../vendor/three/build/three.module.js';
-      
+      import { VRButton } from '../vendor/three/examples/jsm/webxr/VRButton.js';
+
       const renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setPixelRatio(window.devicePixelRatio);
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.xr.enabled = true;
       renderer.xr.setReferenceSpaceType('local');
       document.body.appendChild(renderer.domElement);
+      document.body.appendChild(VRButton.createButton(renderer));
 
       const scene = new THREE.Scene();
       scene.background = new THREE.Color(0x050a18);
@@ -132,6 +139,19 @@
       grid.position.y = 0.001;
       scene.add(grid);
 
+      const axesGroup = new THREE.Group();
+      axesGroup.position.set(0, 1.25, -0.5);
+      scene.add(axesGroup);
+
+      let sinCurve = null;
+      let xOffset = 0;
+
+      createAxes();
+      sinCurve = createSinCurve(xOffset);
+
+      const sliderGroup = createVRSlider();
+      scene.add(sliderGroup);
+
       const controllers = [createController(0), createController(1)];
       controllers.forEach((controller) => scene.add(controller));
 
@@ -152,6 +172,193 @@
 
       window.addEventListener('resize', onWindowResize);
       renderer.setAnimationLoop(render);
+
+      function onSliderChange(event) {
+        xOffset = parseFloat(event.target.value);
+        xValue.textContent = xOffset.toFixed(1);
+        updateSinCurve();
+        updateSliderThumb();
+      }
+
+      function updateSinCurve() {
+        if (sinCurve) {
+          axesGroup.remove(sinCurve);
+        }
+        sinCurve = createSinCurve(xOffset);
+      }
+
+      function updateSliderThumb() {
+        const thumbMesh = sliderGroup.getObjectByName('sliderThumb');
+        if (thumbMesh) {
+          const minX = -3.14;
+          const maxX = 3.14;
+          const trackLength = maxX - minX;
+          const normalizedValue = (xOffset - (-31.4)) / (31.4 - (-31.4));
+          thumbMesh.position.x = minX + normalizedValue * trackLength;
+        }
+      }
+
+      function createVRSlider() {
+        const group = new THREE.Group();
+        group.position.set(0, 0.5, 0.2);
+
+        const trackGeometry = new THREE.BoxGeometry(6.28, 0.06, 0.06);
+        const trackMaterial = new THREE.MeshStandardMaterial({ color: 0x1a3a5c, roughness: 0.8, metalness: 0.2 });
+        const track = new THREE.Mesh(trackGeometry, trackMaterial);
+        track.name = 'sliderTrack';
+        group.add(track);
+
+        const thumbGeometry = new THREE.BoxGeometry(0.2, 0.15, 0.15);
+        const thumbMaterial = new THREE.MeshStandardMaterial({ color: 0x88c8ff, roughness: 0.3, metalness: 0.6, emissive: 0x44a0ff, emissiveIntensity: 0.3 });
+        const thumb = new THREE.Mesh(thumbGeometry, thumbMaterial);
+        thumb.name = 'sliderThumb';
+        thumb.position.x = 0;
+        group.add(thumb);
+
+        return group;
+      }
+
+      function createAxes() {
+        const material = new THREE.MeshStandardMaterial({ color: 0x88c8ff, roughness: 0.3, metalness: 0.2 });
+        const length = 3.0;
+        const thickness = 0.03;
+
+        const xAxis = new THREE.Mesh(new THREE.CylinderGeometry(thickness, thickness, length, 12), material);
+        xAxis.rotation.z = -Math.PI / 2;
+        xAxis.position.x = length / 2;
+        axesGroup.add(xAxis);
+
+        const yAxis = new THREE.Mesh(new THREE.CylinderGeometry(thickness, thickness, length, 12), material);
+        yAxis.position.y = length / 2;
+        axesGroup.add(yAxis);
+
+        const zAxis = new THREE.Mesh(new THREE.CylinderGeometry(thickness, thickness, length, 12), material);
+        zAxis.rotation.x = Math.PI / 2;
+        zAxis.position.z = length / 2;
+        axesGroup.add(zAxis);
+
+        const arrow = new THREE.ConeGeometry(0.08, 0.26, 16);
+        const xArrow = new THREE.Mesh(arrow, material);
+        xArrow.rotation.z = -Math.PI / 2;
+        xArrow.position.set(length, 0, 0);
+        axesGroup.add(xArrow);
+
+        const yArrow = new THREE.Mesh(arrow, material);
+        yArrow.position.set(0, length, 0);
+        axesGroup.add(yArrow);
+
+        const zArrow = new THREE.Mesh(arrow, material);
+        zArrow.rotation.x = Math.PI / 2;
+        zArrow.position.set(0, 0, length);
+        axesGroup.add(zArrow);
+
+        axesGroup.add(createLabel('X', length + 0.2, 0, 0));
+        axesGroup.add(createLabel('Y', 0, length + 0.2, 0));
+        axesGroup.add(createLabel('Z', 0, 0, length + 0.2));
+      }
+
+      function createLabel(text, x, y, z) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 256;
+        canvas.height = 128;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = 'rgba(5, 9, 24, 0.0)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.font = 'bold 70px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#ccf6ff';
+        ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.encoding = THREE.sRGBEncoding;
+
+        const label = new THREE.Mesh(
+          new THREE.PlaneGeometry(0.4, 0.2),
+          new THREE.MeshBasicMaterial({ map: texture, transparent: true })
+        );
+        label.position.set(x, y, z);
+        label.lookAt(camera.position);
+        return label;
+      }
+
+      function createSinCurve(xOff) {
+        const points = [];
+        const start = -Math.PI * 4;
+        const end = Math.PI * 4;
+        const step = 0.08;
+        for (let x = start; x <= end; x += step) {
+          points.push(new THREE.Vector3((x + xOff) * 0.28, Math.sin(x + xOff) * 0.7, 0));
+        }
+
+        const curveGeometry = new THREE.BufferGeometry().setFromPoints(points);
+        const curveMaterial = new THREE.LineBasicMaterial({ color: 0xffd568, linewidth: 2 });
+        const curve = new THREE.Line(curveGeometry, curveMaterial);
+        curve.position.y = 0.02;
+        axesGroup.add(curve);
+        return curve;
+      }
+
+      function createController(index) {
+        const controller = renderer.xr.getController(index);
+        controller.addEventListener('selectstart', onSelectStart);
+        controller.addEventListener('selectend', onSelectEnd);
+
+        const ray = new THREE.Line(
+          new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)]),
+          new THREE.LineBasicMaterial({ color: 0x88c8ff })
+        );
+        ray.name = 'ray';
+        ray.scale.z = 6;
+        controller.add(ray);
+
+        const pointer = new THREE.Mesh(
+          new THREE.SphereGeometry(0.015, 16, 12),
+          new THREE.MeshBasicMaterial({ color: 0x88c8ff, opacity: 0.9, transparent: true })
+        );
+        pointer.position.set(0, 0, -1);
+        controller.add(pointer);
+
+        return controller;
+      }
+
+      function onSelectStart(event) {
+        const controller = event.target;
+        const intersections = getControllerIntersections(controller);
+        if (intersections.length) {
+          const hitObject = intersections[0].object;
+          if (hitObject.name === 'sliderThumb') {
+            selectedMode = 'slider';
+            selectedController = controller;
+            sliderStartX = intersections[0].point.x;
+            sliderStartOffset = xOffset;
+          } else if (hitObject.name === 'sliderTrack') {
+            selectedMode = 'slider';
+            selectedController = controller;
+            sliderStartX = intersections[0].point.x;
+            sliderStartOffset = xOffset;
+          } else {
+            selectedMode = 'transform';
+            selectedController = controller;
+            controllerStartQuat.copy(controller.quaternion);
+            axesStartQuat.copy(axesGroup.quaternion);
+            controllerStartPos.setFromMatrixPosition(controller.matrixWorld);
+            axesStartPos.copy(axesGroup.position);
+          }
+        }
+      }
+
+      function onSelectEnd() {
+        selectedController = null;
+        selectedMode = null;
+      }
+
+      function getControllerIntersections(controller) {
+        tempMatrix.identity().extractRotation(controller.matrixWorld);
+        raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
+        raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix);
+        return raycaster.intersectObjects(sliderGroup.children, true).concat(raycaster.intersectObjects(axesGroup.children, true));
+      }
 
       function onWindowResize() {
         camera.aspect = window.innerWidth / window.innerHeight;
