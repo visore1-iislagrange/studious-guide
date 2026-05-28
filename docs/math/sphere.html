@@ -133,8 +133,8 @@
       <p style="margin-top: 0.7rem; margin-bottom: 0;">A 3D sphere is displayed with adjustable radius and center positions. Grab a connected VR controller and use the select trigger to rotate and translate the axis group, or use the VR sliders to change the sphere radius and center position.</p>
     </div>
     <script type="module">
-      import * as THREE from './vendor/three/build/three.module.js';
-      import { VRButton } from './vendor/three/examples/jsm/webxr/VRButton.js';
+      import * as THREE from '../vendor/three/build/three.module.js';
+      import { VRButton } from '../vendor/three/examples/jsm/webxr/VRButton.js';
 
       const renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setPixelRatio(window.devicePixelRatio);
@@ -181,7 +181,6 @@
 
       createAxes();
       sphereMesh = createSphere(radius, centerX, centerY, centerZ);
-      
       formulaMesh = createFormulaLabel(radius, centerX, centerY, centerZ);
 
       const radiusSliderGroup = createVRSlider('radius');
@@ -290,7 +289,7 @@
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           ctx.fillStyle = 'rgba(5, 9, 24, 0.0)';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.font = 'bold 38px system-ui, sans-serif'; // Font leggermente ridotto per sicurezza sui bordi
+          ctx.font = 'bold 45px system-ui, sans-serif';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
           ctx.fillStyle = '#dbe8ff';
@@ -366,12 +365,12 @@
       function createFormulaLabel(radius, centerX, centerY, centerZ) {
         const text = `radius = ${radius.toFixed(1)}, center x = ${centerX.toFixed(1)}, center y = ${centerY.toFixed(1)}, center z = ${centerZ.toFixed(1)}`;
         const canvas = document.createElement('canvas');
-        canvas.width = 1024; // Risoluzione texture ottimale
-        canvas.height = 128;
+        canvas.width = 1024;
+        canvas.height = 256;
         const ctx = canvas.getContext('2d');
         ctx.fillStyle = 'rgba(5, 9, 24, 0.0)';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.font = 'bold 38px system-ui, sans-serif'; // Dimensione bilanciata per evitare overflow laterali
+        ctx.font = 'bold 45px system-ui, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = '#dbe8ff';
@@ -380,15 +379,13 @@
         const texture = new THREE.CanvasTexture(canvas);
         texture.encoding = THREE.sRGBEncoding;
 
-        // Allargata la geometria 3D da 3.5 a 4.5 per dare pieno respiro visivo al testo
         const label = new THREE.Mesh(
-          new THREE.PlaneGeometry(4.5, 0.56),
+          new THREE.PlaneGeometry(2.5, 0.6),
           new THREE.MeshBasicMaterial({ map: texture, transparent: true })
         );
-        
-        // Posizionato stabilmente sotto l'ultimo slider (y = 0.1, z = -2)
-        label.position.set(0, -0.4, -2);
-        scene.add(label); 
+        label.position.set(0, 2.5, -0.5);
+        label.lookAt(camera.position);
+        axesGroup.add(label);
         return label;
       }
 
@@ -578,19 +575,11 @@
             }
             updateSphere();
             updateFormulaBox();
-
-            sliderStartX = currentX;
-            if (selectedMode === 'slider_radius') sliderStartValue = radius;
-            else if (selectedMode === 'slider_center') sliderStartValue = centerX;
-            else if (selectedMode === 'slider_centerY') sliderStartValue = centerY;
-            else if (selectedMode === 'slider_centerZ') sliderStartValue = centerZ;
           }
         }
-
         if (formulaMesh) {
           formulaMesh.lookAt(camera.position);
         }
-
         renderer.render(scene, camera);
       }
     </script>
