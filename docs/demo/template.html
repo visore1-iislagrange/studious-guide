@@ -255,7 +255,7 @@
       const DEADZONE   = 0.15;
 
       // Running world-space offset (meters) and heading (radians)
-      let xrOffsetX = 0, xrOffsetZ = 0, xrYaw = 0;
+      let xrOffsetX = 0, xrOffsetY = 0, xrOffsetZ = 0, xrYaw = 0;
 
       function applyDeadzone(v) {
         return Math.abs(v) < DEADZONE ? 0 : v;
@@ -303,10 +303,12 @@
           //   axes[2] = stick X,  axes[3] = stick Y
           // (axes[0]/[1] are touchpad axes, usually zero on most headsets)
 
-          // Right stick → turn (yaw)
+          // Right stick → turn (yaw) + vertical height
           if (rightSrc?.gamepad) {
             const rx = applyDeadzone(rightSrc.gamepad.axes[2] ?? 0);
+            const ry = applyDeadzone(rightSrc.gamepad.axes[3] ?? 0);
             if (rx !== 0) { xrYaw -= rx * LOOK_SPEED * dt; dirty = true; }
+            if (ry !== 0) { xrOffsetY -= ry * MOVE_SPEED * dt; dirty = true; }
           }
 
           // Left stick → translate relative to current heading
@@ -329,14 +331,14 @@
             const halfYaw = xrYaw / 2;
             try {
               const xform = new XRRigidTransform(
-                { x: xrOffsetX, y: 0, z: xrOffsetZ, w: 1 },
+                { x: xrOffsetX, y: xrOffsetY, z: xrOffsetZ, w: 1 },
                 { x: 0, y: Math.sin(halfYaw), z: 0, w: Math.cos(halfYaw) }
               );
               renderer.xr.setReferenceSpace(
                 renderer.xr.getReferenceSpace().getOffsetReferenceSpace(xform)
               );
               // Reset deltas — the new reference space is now the baseline
-              xrOffsetX = 0; xrOffsetZ = 0; xrYaw = 0;
+              xrOffsetX = 0; xrOffsetY = 0; xrOffsetZ = 0; xrYaw = 0;
             } catch(e) { /* XRRigidTransform not yet available, skip */ }
           }
         }
