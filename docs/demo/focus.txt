@@ -1,0 +1,6 @@
+Change this template, keep the at-least-vanilla js html-monolith approach, in a "focus lens" demo where the user see some text a difference distances useful to check if the lens distance fit users eye distance correctly avoiding stressing those to get clear view.
+To create the "eye-test chart / Snellen chart" component uses the UIKitML markup that is the "Spatial UI" part of the latest "Immersive Web SDK" release by Meta fall 2025.
+
+Do not add Vite, Webpack or React to the project. Stay on a Three.js/Vanilla architecture.
+
+You can read about "Spatial UI" there: https://developers.meta.com/horizon/documentation/web/iwsdk-guide-spatial-ui/

@@ -3,396 +3,641 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>WebXR Starter Template</title>
+    <title>Focus Lens — XR Eye Chart</title>
     <style>
       *, *::before, *::after { box-sizing: border-box; }
 
       body, html {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
+        margin: 0; padding: 0;
+        width: 100%; height: 100%;
         overflow: hidden;
-        background: #050a18;
-        color: #f4f8ff;
-        font-family: system-ui, sans-serif;
+        background: #03070f;
+        color: #e8f4ff;
+        font-family: 'Courier New', monospace;
       }
 
-      #info {
+      /* ── HUD overlay ─────────────────────────────────────────────── */
+      #hud {
         position: absolute;
-        left: 1.2rem;
-        right: 1.2rem;
-        top: 1.2rem;
+        left: 1.2rem; top: 1.2rem;
         z-index: 10;
-        padding: 1.2rem 1.4rem;
-        background: rgba(2, 8, 25, 0.75);
-        border: 1px solid rgba(136, 200, 255, 0.12);
-        border-radius: 1rem;
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        line-height: 1.6;
-        font-size: 0.95rem;
-        max-width: 480px;
+        padding: 1.1rem 1.4rem;
+        background: rgba(2, 8, 22, 0.82);
+        border: 1px solid rgba(100, 200, 255, 0.14);
+        border-radius: 0.9rem;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        max-width: 360px;
+        line-height: 1.55;
       }
 
-      #info strong {
+      #hud strong {
         display: block;
-        margin-bottom: 0.3rem;
-        font-size: 1.15rem;
-        font-weight: 800;
-        letter-spacing: -0.01em;
-        background: linear-gradient(90deg, #88c8ff, #c4a3ff);
+        margin-bottom: 0.25rem;
+        font-size: 1.05rem;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        background: linear-gradient(90deg, #64c8ff, #a8ff78);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
       }
 
-      #info p {
-        margin: 0;
-        color: rgba(244, 248, 255, 0.65);
-        font-size: 0.88rem;
-        line-height: 1.6;
+      #hud p {
+        margin: 0 0 0.7rem;
+        color: rgba(232, 244, 255, 0.55);
+        font-size: 0.78rem;
+        line-height: 1.65;
       }
 
-      #info .hint {
-        margin-top: 0.75rem;
-        padding: 0.6rem 0.8rem;
-        background: rgba(136, 200, 255, 0.06);
-        border: 1px solid rgba(136, 200, 255, 0.1);
-        border-radius: 0.5rem;
-        font-family: monospace;
-        font-size: 0.75rem;
-        color: rgba(244, 248, 255, 0.45);
+      #hud .tags {
+        display: flex; gap: 0.4rem; flex-wrap: wrap;
+        margin-bottom: 0.7rem;
+      }
+
+      #hud .tag {
+        padding: 0.18rem 0.55rem;
+        background: rgba(100, 200, 255, 0.08);
+        border: 1px solid rgba(100, 200, 255, 0.18);
+        border-radius: 99px;
+        font-size: 0.68rem;
+        color: #64c8ff;
+        letter-spacing: 0.04em;
+      }
+
+      #hud .ctrl {
+        font-size: 0.72rem;
+        color: rgba(232, 244, 255, 0.38);
         line-height: 1.7;
       }
+      #hud .ctrl span { color: #a8ff78; font-weight: 700; }
 
-      #info .hint span {
-        color: #88c8ff;
-        font-weight: 700;
+      /* ── Distance indicator pills ───────────────────────────────── */
+      #distances {
+        position: absolute;
+        right: 1.2rem; top: 1.2rem;
+        z-index: 10;
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
       }
 
-      /* Exit VR button */
+      .dist-pill {
+        display: flex; align-items: center; gap: 0.5rem;
+        padding: 0.4rem 0.75rem;
+        background: rgba(2, 8, 22, 0.78);
+        border: 1px solid rgba(100, 200, 255, 0.1);
+        border-radius: 99px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        font-size: 0.72rem;
+        color: rgba(232, 244, 255, 0.5);
+        transition: border-color 0.25s, color 0.25s;
+      }
+      .dist-pill.active {
+        border-color: rgba(168, 255, 120, 0.5);
+        color: #a8ff78;
+      }
+      .dist-pill .dot {
+        width: 7px; height: 7px;
+        border-radius: 50%;
+        background: currentColor;
+        opacity: 0.6;
+      }
+
+      /* ── Exit VR ─────────────────────────────────────────────────── */
       #exitVRBtn {
         position: absolute;
-        bottom: 2rem;
-        left: 50%;
+        bottom: 2rem; left: 50%;
         transform: translateX(-50%);
         z-index: 20;
         display: none;
-        padding: 0.65rem 1.6rem;
-        background: rgba(2, 8, 25, 0.85);
-        border: 1px solid rgba(255, 100, 100, 0.35);
+        padding: 0.6rem 1.5rem;
+        background: rgba(2, 8, 22, 0.85);
+        border: 1px solid rgba(255, 90, 90, 0.3);
         border-radius: 2rem;
         color: #ff8888;
-        font-family: system-ui, sans-serif;
-        font-size: 0.9rem;
+        font-family: 'Courier New', monospace;
+        font-size: 0.85rem;
         font-weight: 700;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.05em;
         cursor: pointer;
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
-        transition: background 0.2s, border-color 0.2s, color 0.2s;
+        transition: background 0.2s, border-color 0.2s;
       }
-
       #exitVRBtn:hover {
-        background: rgba(255, 80, 80, 0.15);
-        border-color: rgba(255, 100, 100, 0.7);
-        color: #ffaaaa;
+        background: rgba(255, 80, 80, 0.12);
+        border-color: rgba(255, 90, 90, 0.6);
       }
 
-      canvas {
-        display: block;
-      }
+      canvas { display: block; }
     </style>
   </head>
   <body>
-    <div id="info">
-      <strong>WebXR Starter Template</strong>
-      <p>This is a WebXR template to start building your immersive dreams.</p>
-      <div class="hint">
-        <span>L stick</span> — move camera · <span>R stick</span> — look around<br>
-        <span>Trigger</span> — interact · <span>Exit VR</span> — leave session
+
+    <!-- ── HUD ────────────────────────────────────────────────────── -->
+    <div id="hud">
+      <strong>Focus Lens</strong>
+      <p>Look at each eye chart panel. If letters blur at a given distance, your lens may not match that focal depth.</p>
+      <div class="tags">
+        <span class="tag">0.4 m</span>
+        <span class="tag">1.0 m</span>
+        <span class="tag">2.0 m</span>
+        <span class="tag">4.0 m</span>
+      </div>
+      <div class="ctrl">
+        <span>L stick</span> — move &nbsp;·&nbsp; <span>R stick</span> — turn / height<br>
+        <span>Trigger</span> — snap to distance
+      </div>
+    </div>
+
+    <!-- ── Distance pills ─────────────────────────────────────────── -->
+    <div id="distances">
+      <div class="dist-pill" data-d="0">
+        <span class="dot"></span> <span>0.4 m — Near (phone)</span>
+      </div>
+      <div class="dist-pill" data-d="1">
+        <span class="dot"></span> <span>1.0 m — Arm's length</span>
+      </div>
+      <div class="dist-pill" data-d="2">
+        <span class="dot"></span> <span>2.0 m — Social</span>
+      </div>
+      <div class="dist-pill" data-d="3">
+        <span class="dot"></span> <span>4.0 m — Room</span>
       </div>
     </div>
 
     <button id="exitVRBtn">✕ Exit VR</button>
 
-    <script type="module">
-      import * as THREE from '../vendor/three/build/three.module.js';
-      import { VRButton } from '../vendor/three/examples/jsm/webxr/VRButton.js';
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.176.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.176.0/examples/jsm/",
+        "@pmndrs/uikit": "https://esm.sh/@pmndrs/uikit@1.0.46?bundle"
+      }
+    }
+    </script>
 
-      // ─── Renderer ────────────────────────────────────────────────────────────
+    <script type="module">
+      import * as THREE from 'three';
+      import { VRButton } from 'three/addons/webxr/VRButton.js';
+      import {
+        Root, Container, Text,
+        reversePainterSortStable
+      } from '@pmndrs/uikit';
+
+      // ── Renderer ────────────────────────────────────────────────
       const renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setPixelRatio(window.devicePixelRatio);
       renderer.setSize(window.innerWidth, window.innerHeight);
       renderer.xr.enabled = true;
       renderer.xr.setReferenceSpaceType('local');
+      renderer.localClippingEnabled = true;                        // required by uikit
+      renderer.setTransparentSort(reversePainterSortStable);       // required by uikit
       document.body.appendChild(renderer.domElement);
       document.body.appendChild(VRButton.createButton(renderer));
 
-      // ─── Exit VR button ──────────────────────────────────────────────────────
+      // ── Exit VR ─────────────────────────────────────────────────
       const exitVRBtn = document.getElementById('exitVRBtn');
       exitVRBtn.addEventListener('click', () => {
-        if (renderer.xr.isPresenting) {
-          renderer.xr.getSession().end();
-        }
+        if (renderer.xr.isPresenting) renderer.xr.getSession().end();
       });
+      renderer.xr.addEventListener('sessionstart', () => exitVRBtn.style.display = 'block');
+      renderer.xr.addEventListener('sessionend',   () => exitVRBtn.style.display = 'none');
 
-      renderer.xr.addEventListener('sessionstart', () => {
-        exitVRBtn.style.display = 'block';
-      });
-      renderer.xr.addEventListener('sessionend', () => {
-        exitVRBtn.style.display = 'none';
-      });
-
-      // ─── Scene ───────────────────────────────────────────────────────────────
+      // ── Scene ────────────────────────────────────────────────────
       const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x050a18);
-      scene.fog = new THREE.FogExp2(0x050a18, 0.045);
+      scene.background = new THREE.Color(0x03070f);
+      scene.fog = new THREE.FogExp2(0x03070f, 0.022);
 
-      // ─── Camera ──────────────────────────────────────────────────────────────
+      // ── Camera ───────────────────────────────────────────────────
       const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.05, 200);
-      camera.position.set(0, 1.6, 4);
+      camera.position.set(0, 1.6, 0);
       scene.add(camera);
 
-      // Controllers live in the scene; the XR runtime positions them correctly
+      // ── Lights ───────────────────────────────────────────────────
+      scene.add(new THREE.HemisphereLight(0xddeeff, 0x080c18, 0.7));
+      const sun = new THREE.DirectionalLight(0xffffff, 0.6);
+      sun.position.set(3, 8, 4);
+      scene.add(sun);
+
+      // ── Floor ────────────────────────────────────────────────────
+      const floor = new THREE.Mesh(
+        new THREE.PlaneGeometry(60, 60),
+        new THREE.MeshStandardMaterial({ color: 0x05101e, roughness: 0.95, metalness: 0.0 })
+      );
+      floor.rotation.x = -Math.PI / 2;
+      scene.add(floor);
+
+      const grid = new THREE.GridHelper(60, 60, 0x0d2240, 0x071220);
+      grid.position.y = 0.002;
+      scene.add(grid);
+
+      // ── Controllers ──────────────────────────────────────────────
       const controller0 = renderer.xr.getController(0);
       const controller1 = renderer.xr.getController(1);
       scene.add(controller0);
       scene.add(controller1);
 
-      // ─── Lights ──────────────────────────────────────────────────────────────
-      scene.add(new THREE.HemisphereLight(0xffffff, 0x101825, 0.8));
-      const sun = new THREE.DirectionalLight(0xffffff, 0.9);
-      sun.position.set(5, 10, 5);
-      scene.add(sun);
-
-      // ─── Environment ─────────────────────────────────────────────────────────
-      // Floor
-      const floor = new THREE.Mesh(
-        new THREE.PlaneGeometry(40, 40),
-        new THREE.MeshStandardMaterial({ color: 0x081025, roughness: 0.95, metalness: 0.05 })
-      );
-      floor.rotation.x = -Math.PI / 2;
-      scene.add(floor);
-
-      // Grid
-      const grid = new THREE.GridHelper(40, 40, 0x1a3a5c, 0x0d1e35);
-      grid.position.y = 0.001;
-      scene.add(grid);
-
-      // Decorative floating orbs
-      const orbColors = [0x88c8ff, 0xc4a3ff, 0x68e8b0, 0xffd568];
-      for (let i = 0; i < 12; i++) {
-        const r = 0.08 + Math.random() * 0.18;
-        const baseColor = orbColors[i % orbColors.length];
-        const orb = new THREE.Mesh(
-          new THREE.SphereGeometry(r, 20, 16),
-          new THREE.MeshStandardMaterial({
-            color: baseColor,
-            roughness: 0.15,
-            metalness: 0.8,
-            emissive: baseColor,
-            emissiveIntensity: 0.25
-          })
-        );
-        orb.position.set(
-          (Math.random() - 0.5) * 14,
-          1 + Math.random() * 3,
-          (Math.random() - 0.5) * 14
-        );
-        orb.userData.floatOffset = Math.random() * Math.PI * 2;
-        orb.userData.floatSpeed  = 0.3 + Math.random() * 0.5;
-        orb.userData.baseColor   = baseColor;
-        orb.userData.hovered     = false;
-        scene.add(orb);
-      }
-
-      // Collect orbs for animation and raycasting
-      const orbs = scene.children.filter(c => c.userData.floatOffset !== undefined);
-
-      // Reusable raycaster for hover detection
-      const rayHover    = new THREE.Raycaster();
-      const _rayOrigin  = new THREE.Vector3();
-      const _rayDir     = new THREE.Vector3();
-      const _tempMat    = new THREE.Matrix4();
-      const _lightColor = new THREE.Color();
-
-      // ─── Controller ray visuals ───────────────────────────────────────────────
-      function buildControllerRay(controller) {
-        // Ray line
-        const rayGeom = new THREE.BufferGeometry().setFromPoints([
-          new THREE.Vector3(0, 0, 0),
-          new THREE.Vector3(0, 0, -1)
-        ]);
+      function buildRay(ctrl) {
         const ray = new THREE.Line(
-          rayGeom,
-          new THREE.LineBasicMaterial({ color: 0x88c8ff, opacity: 0.65, transparent: true })
+          new THREE.BufferGeometry().setFromPoints([
+            new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)
+          ]),
+          new THREE.LineBasicMaterial({ color: 0x64c8ff, opacity: 0.55, transparent: true })
         );
-        ray.name = 'ray';
-        ray.scale.z = 10;
-        controller.add(ray);
-
-        // Dot at ray tip
-        const dot = new THREE.Mesh(
-          new THREE.SphereGeometry(0.012, 12, 10),
-          new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.8, transparent: true })
-        );
-        dot.position.set(0, 0, -1);
-        dot.name = 'rayDot';
-        controller.add(dot);
-
-        // Controller body
+        ray.scale.z = 8;
+        ctrl.add(ray);
         const body = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.018, 0.028, 0.14, 16),
-          new THREE.MeshStandardMaterial({ color: 0x1a3a5c, roughness: 0.4, metalness: 0.7 })
+          new THREE.CylinderGeometry(0.017, 0.026, 0.13, 16),
+          new THREE.MeshStandardMaterial({ color: 0x0a1e38, roughness: 0.4, metalness: 0.7 })
         );
         body.rotation.x = Math.PI / 2;
-        controller.add(body);
+        ctrl.add(body);
       }
+      buildRay(controller0);
+      buildRay(controller1);
 
-      buildControllerRay(controller0);
-      buildControllerRay(controller1);
+      // ────────────────────────────────────────────────────────────
+      // ── Snellen Eye-Chart Data ───────────────────────────────────
+      //
+      //  A standard Snellen chart has rows labelled by visual acuity.
+      //  Each row uses a specific optotype size so that at the named
+      //  test distance (6 m / 20 ft) a person with that acuity sees
+      //  letters subtending 5 arcmin. We scale the physical letter
+      //  height to match the chart's PHYSICAL distance in the scene.
+      //
+      //  Rows: acuity label,  letters (7 chars, no O/0 confusion)
+      // ────────────────────────────────────────────────────────────
+      const SNELLEN_ROWS = [
+        { label: '20/200', letters: 'E',               relSize: 10 },
+        { label: '20/100', letters: 'FP',              relSize:  5 },
+        { label: '20/70',  letters: 'TOZ',             relSize: 3.5 },
+        { label: '20/50',  letters: 'LPED',            relSize: 2.5 },
+        { label: '20/40',  letters: 'PECFD',           relSize: 2.0 },
+        { label: '20/30',  letters: 'EDFCZP',          relSize: 1.5 },
+        { label: '20/25',  letters: 'FELOPZD',         relSize: 1.25 },
+        { label: '20/20',  letters: 'DEFPOTEC',        relSize: 1.0 },
+        { label: '20/15',  letters: 'LEFODPCT',        relSize: 0.75 },
+        { label: '20/10',  letters: 'FDPLTCEO',        relSize: 0.5 },
+      ];
 
-      // ─── Orb hover via raycasts ───────────────────────────────────────────────
-      function checkOrbHover() {
-        // Collect all hit orbs from both controllers this frame
-        const hitOrbs = new Set();
+      // ── Chart panels config ──────────────────────────────────────
+      //   distance: Z in meters (negative = in front)
+      //   heightM:  physical panel height in meters (chart is 0.8 m tall at 2 m)
+      //
+      //  We keep the angular size roughly constant by scaling height ∝ distance.
+      const PANELS = [
+        { dist: 0.4,  label: '0.4 m',  subtitle: 'Near · Phone reading',    color: '#a8ff78', accent: '#1a3010' },
+        { dist: 1.0,  label: '1.0 m',  subtitle: 'Arm\'s length · Tablet',  color: '#64c8ff', accent: '#0a1e30' },
+        { dist: 2.0,  label: '2.0 m',  subtitle: 'Social distance',         color: '#e0aaff', accent: '#1a0a30' },
+        { dist: 4.0,  label: '4.0 m',  subtitle: 'Room scale · TV',         color: '#ffcc66', accent: '#2a1a00' },
+      ];
 
-        for (const ctrl of [controller0, controller1]) {
-          if (!ctrl.matrixWorld) continue;
-          _tempMat.identity().extractRotation(ctrl.matrixWorld);
-          _rayOrigin.setFromMatrixPosition(ctrl.matrixWorld);
-          _rayDir.set(0, 0, -1).applyMatrix4(_tempMat);
-          rayHover.set(_rayOrigin, _rayDir);
+      // ── Build UIKit Snellen panel for one distance ───────────────
+      //
+      //  UIKitML compiled markup equivalent (what IWSDK vite plugin
+      //  would compile from a .uikitml file) — implemented here as
+      //  direct @pmndrs/uikit vanilla API calls since we have no Vite:
+      //
+      //  <div style="flexDirection:column; padding:16; width:380; ...">
+      //    <text style="fontSize:12; color:#acf; ...">SNELLEN CHART – 0.4 m</text>
+      //    <div style="borderBottom:1px solid #fff2; marginBottom:8; ..."/>
+      //    <!-- for each row: -->
+      //    <div style="flexDirection:row; justifyContent:spaceBetween; ...">
+      //      <text style="fontSize:8; color:#888; width:60">20/200</text>
+      //      <text style="fontSize:acuityPt; color:#eee; flex:1; ...">E</text>
+      //    </div>
+      //    ...
+      //    <text style="fontSize:9; color:#555; marginTop:12">Focus Lens · Meta IWSDK UIKitML</text>
+      //  </div>
+      // ─────────────────────────────────────────────────────────────
 
-          const hits = rayHover.intersectObjects(orbs, false);
-          if (hits.length > 0) hitOrbs.add(hits[0].object);
+      const uikitRoots = [];   // collected for .update() calls
+
+      function buildChartPanel(panelCfg) {
+        const { dist, label, subtitle, color, accent } = panelCfg;
+
+        // Physical scale: at 2 m the panel is 0.8 m tall.
+        // Keep solid angular size → height ∝ distance.
+        const physH = 0.8 * (dist / 2.0);
+        const physW = physH * 0.65;
+
+        // px ↔ m mapping: Root pixel density (pixelsPerUnit).
+        // We design in a 400 px wide canvas and map to physW meters.
+        const PX = 400;
+        const pixelsPerUnit = PX / physW;   // px / meter
+
+        // UIKit Root is the scene-space anchor mesh.
+        // pixelsPerUnit converts pixel layout → Three.js units (meters here).
+        const root = new Root(camera, renderer, {
+          flexDirection: 'column',
+          alignItems: 'center',
+          padding: 18,
+          paddingLeft: 22,
+          paddingRight: 22,
+          width: PX,
+          backgroundColor: '#03080e',
+          borderWidth: 1,
+          borderColor: color,
+          borderRadius: 14,
+          gap: 0,
+        }, { pixelsPerUnit });
+
+        // ── Header ──────────────────────────────────────────────────
+        const header = new Container({
+          flexDirection: 'column',
+          alignItems: 'center',
+          width: '100%',
+          marginBottom: 10,
+          paddingBottom: 10,
+          borderBottomWidth: 1,
+          borderBottomColor: color + '33',
+        });
+        root.add(header);
+
+        new Text({
+          fontSize: 11,
+          fontWeight: 'bold',
+          letterSpacing: 0.12,
+          color: color,
+          textTransform: 'uppercase',
+          text: `Focus Lens · ${label}`,
+        }).addTo(header);
+
+        new Text({
+          fontSize: 9,
+          color: '#667788',
+          marginTop: 3,
+          text: subtitle,
+        }).addTo(header);
+
+        // ── Separator ───────────────────────────────────────────────
+        const sep = new Container({
+          width: '100%',
+          height: 1,
+          backgroundColor: color + '22',
+          marginBottom: 6,
+        });
+        root.add(sep);
+
+        // ── Snellen rows ────────────────────────────────────────────
+        //
+        //  Base font size for 20/20 row (relSize = 1.0).
+        //  At dist=2 m, physH=0.8 m, PX=400 px:
+        //    20/20 row letter occupies ~5% of chart height → ~20 px
+        //  We then scale by relSize for each row.
+        const BASE_PT = 20;
+
+        for (const row of SNELLEN_ROWS) {
+          const rowPx = Math.round(BASE_PT * row.relSize);
+          if (rowPx < 6) continue;   // skip imperceptibly tiny rows
+
+          const rowContainer = new Container({
+            flexDirection: 'row',
+            alignItems: 'center',
+            width: '100%',
+            paddingTop: Math.max(1, rowPx * 0.08),
+            paddingBottom: Math.max(1, rowPx * 0.08),
+          });
+          root.add(rowContainer);
+
+          // Acuity label
+          new Text({
+            text: row.label,
+            fontSize: 8,
+            color: '#334455',
+            width: 52,
+            flexShrink: 0,
+            fontWeight: 'bold',
+          }).addTo(rowContainer);
+
+          // Letters — fixed-width monospace feel; spaced evenly
+          new Text({
+            text: row.letters,
+            fontSize: rowPx,
+            color: '#e8f4ff',
+            fontWeight: 'bold',
+            letterSpacing: 0.25,
+            flexGrow: 1,
+            textAlign: 'center',
+          }).addTo(rowContainer);
+
+          // Red / good line accent dots
+          const dotColor = row.relSize <= 1.0 ? color : '#1a2a3a';
+          new Container({
+            width: 5, height: 5,
+            borderRadius: 3,
+            backgroundColor: dotColor,
+            flexShrink: 0,
+            marginLeft: 6,
+            alignSelf: 'center',
+          }).addTo(rowContainer);
         }
 
-        // Apply / remove highlight on each orb
-        for (const orb of orbs) {
-          const mat = orb.material;
-          const nowHovered = hitOrbs.has(orb);
-          if (nowHovered === orb.userData.hovered) continue; // no change
-          orb.userData.hovered = nowHovered;
+        // ── Footer ───────────────────────────────────────────────────
+        const footer = new Container({
+          flexDirection: 'row',
+          justifyContent: 'spaceBetween',
+          alignItems: 'center',
+          width: '100%',
+          marginTop: 12,
+          paddingTop: 8,
+          borderTopWidth: 1,
+          borderTopColor: color + '22',
+        });
+        root.add(footer);
 
-          if (nowHovered) {
-            // Lighten: boost emissive intensity and tint color toward white
-            _lightColor.set(orb.userData.baseColor).lerp(new THREE.Color(0xffffff), 0.45);
-            mat.color.copy(_lightColor);
-            mat.emissive.copy(_lightColor);
-            mat.emissiveIntensity = 0.9;
-          } else {
-            // Restore base appearance
-            mat.color.set(orb.userData.baseColor);
-            mat.emissive.set(orb.userData.baseColor);
-            mat.emissiveIntensity = 0.25;
+        new Text({
+          text: 'UIKitML · Spatial UI',
+          fontSize: 7,
+          color: '#2a3a4a',
+        }).addTo(footer);
+
+        new Text({
+          text: dist + ' m',
+          fontSize: 9,
+          fontWeight: 'bold',
+          color: color,
+        }).addTo(footer);
+
+        // ── Position in 3D space ────────────────────────────────────
+        //   Panel faces origin (viewer), centered at eye height 1.6 m
+        root.position.set(0, 1.6, -dist);
+
+        scene.add(root);
+        uikitRoots.push(root);
+
+        // ── Distance label in 3D (Three.js sprite-like plane) ───────
+        addDistanceMarker(dist, label, color);
+
+        return root;
+      }
+
+      // ── Distance floor marker ────────────────────────────────────
+      function addDistanceMarker(dist, label, color) {
+        // Thin vertical pole
+        const pole = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.005, 0.005, 1.6, 8),
+          new THREE.MeshStandardMaterial({
+            color: new THREE.Color(color),
+            roughness: 0.3, metalness: 0.8,
+            emissive: new THREE.Color(color), emissiveIntensity: 0.2,
+          })
+        );
+        pole.position.set(0, 0.8, -dist);
+        scene.add(pole);
+
+        // Floor ring
+        const ring = new THREE.Mesh(
+          new THREE.RingGeometry(0.12, 0.16, 32),
+          new THREE.MeshBasicMaterial({
+            color: new THREE.Color(color), side: THREE.DoubleSide, opacity: 0.3, transparent: true
+          })
+        );
+        ring.rotation.x = -Math.PI / 2;
+        ring.position.set(0, 0.003, -dist);
+        scene.add(ring);
+      }
+
+      // ── Instantiate all panels ────────────────────────────────────
+      for (const cfg of PANELS) buildChartPanel(cfg);
+
+      // ── Ambient env: distant stars ────────────────────────────────
+      {
+        const starGeo = new THREE.BufferGeometry();
+        const pos = [];
+        for (let i = 0; i < 600; i++) {
+          const θ = Math.random() * Math.PI * 2;
+          const φ = Math.acos(2 * Math.random() - 1);
+          const r = 40 + Math.random() * 30;
+          pos.push(
+            r * Math.sin(φ) * Math.cos(θ),
+            r * Math.sin(φ) * Math.sin(θ),
+            r * Math.cos(φ)
+          );
+        }
+        starGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+        scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0x6688aa, size: 0.06 })));
+      }
+
+      // ── Distance pills DOM sync ───────────────────────────────────
+      const pills = document.querySelectorAll('.dist-pill');
+      function updatePills(nearestIdx) {
+        pills.forEach((p, i) => p.classList.toggle('active', i === nearestIdx));
+      }
+
+      // ── Locomotion ───────────────────────────────────────────────
+      const MOVE_SPEED = 3.0, LOOK_SPEED = 1.5, DEADZONE = 0.15;
+      let xrOffX = 0, xrOffY = 0, xrOffZ = 0, xrYaw = 0;
+
+      function applyDZ(v) { return Math.abs(v) < DEADZONE ? 0 : v; }
+      function getInputSources() {
+        const s = renderer.xr.getSession();
+        if (!s) return [null, null];
+        const src = Array.from(s.inputSources);
+        return [
+          src.find(x => x.handedness === 'left')  || null,
+          src.find(x => x.handedness === 'right') || null,
+        ];
+      }
+
+      // ── Snap to chart distances via trigger ──────────────────────
+      const snapDistances = PANELS.map(p => p.dist);
+      let snapIdx = -1;
+
+      function handleTriggerSnap() {
+        const s = renderer.xr.getSession();
+        if (!s) return;
+        for (const src of s.inputSources) {
+          const gp = src.gamepad;
+          if (!gp) continue;
+          // buttons[0] = trigger; fire on press
+          if (gp.buttons[0]?.pressed) {
+            snapIdx = (snapIdx + 1) % snapDistances.length;
+            const d = snapDistances[snapIdx];
+            // Snap the XR reference space so viewer stands at z=0,
+            // facing the panel at -d. We do so by offsetting origin.
+            xrOffX = 0; xrOffY = 0; xrOffZ = d - 0.25;
+            applyXROffset();
+            break;
           }
         }
       }
 
-      // ─── Locomotion via XR reference space offset ────────────────────────────
-      // In WebXR the HMD pose is injected directly into the camera by Three.js,
-      // so moving the cameraRig or camera has no effect. The correct approach is
-      // to accumulate a world-space delta each frame and apply it by rebasing the
-      // XR reference space with getOffsetReferenceSpace().
-
-      const MOVE_SPEED = 3.0;
-      const LOOK_SPEED = 1.6;
-      const DEADZONE   = 0.15;
-
-      // Running world-space offset (meters) and heading (radians)
-      let xrOffsetX = 0, xrOffsetY = 0, xrOffsetZ = 0, xrYaw = 0;
-
-      function applyDeadzone(v) {
-        return Math.abs(v) < DEADZONE ? 0 : v;
+      function applyXROffset() {
+        if (typeof XRRigidTransform === 'undefined') return;
+        const hy = xrYaw / 2;
+        try {
+          const xform = new XRRigidTransform(
+            { x: xrOffX, y: xrOffY, z: xrOffZ, w: 1 },
+            { x: 0, y: Math.sin(hy), z: 0, w: Math.cos(hy) }
+          );
+          renderer.xr.setReferenceSpace(
+            renderer.xr.getReferenceSpace().getOffsetReferenceSpace(xform)
+          );
+          xrOffX = 0; xrOffY = 0; xrOffZ = 0; xrYaw = 0;
+        } catch(e) {}
       }
 
-      function getInputSources() {
-        const session = renderer.xr.getSession();
-        if (!session) return [null, null];
-        const src = Array.from(session.inputSources);
-        return [
-          src.find(s => s.handedness === 'left')  || null,
-          src.find(s => s.handedness === 'right') || null
-        ];
-      }
-
-      // ─── Resize ──────────────────────────────────────────────────────────────
+      // ── Resize ───────────────────────────────────────────────────
       window.addEventListener('resize', () => {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
       });
 
-      // ─── Render loop ─────────────────────────────────────────────────────────
+      // ── Render loop ──────────────────────────────────────────────
       const clock = new THREE.Clock();
+      let triggerWas = false;
 
       renderer.setAnimationLoop(() => {
         const dt = clock.getDelta();
-        const t  = clock.elapsedTime;
 
-        // Float orbs
-        orbs.forEach(orb => {
-          orb.position.y += Math.sin(t * orb.userData.floatSpeed + orb.userData.floatOffset) * 0.003;
-        });
-
-        // ── XR locomotion ─────────────────────────────────────────────────────
-        // Moving camera/rig objects doesn't work in WebXR — the HMD pose is
-        // written directly by the runtime. Instead we accumulate a delta each
-        // frame and rebase the XR reference space origin via getOffsetReferenceSpace.
+        // ── XR locomotion ──────────────────────────────────────────
         const session = renderer.xr.getSession();
         if (session && typeof XRRigidTransform !== 'undefined') {
-          const [leftSrc, rightSrc] = getInputSources();
+          const [L, R] = getInputSources();
           let dirty = false;
 
-          // XR gamepad thumbstick axes (OpenXR / Quest standard):
-          //   axes[2] = stick X,  axes[3] = stick Y
-          // (axes[0]/[1] are touchpad axes, usually zero on most headsets)
-
-          // Right stick → turn (yaw) + vertical height
-          if (rightSrc?.gamepad) {
-            const rx = applyDeadzone(rightSrc.gamepad.axes[2] ?? 0);
-            const ry = applyDeadzone(rightSrc.gamepad.axes[3] ?? 0);
-            if (rx !== 0) { xrYaw -= rx * LOOK_SPEED * dt; dirty = true; }
-            if (ry !== 0) { xrOffsetY -= ry * MOVE_SPEED * dt; dirty = true; }
+          if (R?.gamepad) {
+            const rx = applyDZ(R.gamepad.axes[2] ?? 0);
+            const ry = applyDZ(R.gamepad.axes[3] ?? 0);
+            if (rx) { xrYaw  -= rx * LOOK_SPEED * dt; dirty = true; }
+            if (ry) { xrOffY -= ry * MOVE_SPEED * dt; dirty = true; }
           }
-
-          // Left stick → translate relative to current heading
-          if (leftSrc?.gamepad) {
-            const lx = applyDeadzone(leftSrc.gamepad.axes[2] ?? 0);
-            const ly = applyDeadzone(leftSrc.gamepad.axes[3] ?? 0);
-            if (lx !== 0 || ly !== 0) {
-              // Heading: forward = -Z rotated by current yaw
-              const sinY = Math.sin(xrYaw), cosY = Math.cos(xrYaw);
-              xrOffsetX += ( lx * cosY - ly * sinY) * MOVE_SPEED * dt;
-              xrOffsetZ += (-lx * sinY - ly * cosY) * MOVE_SPEED * dt;
+          if (L?.gamepad) {
+            const lx = applyDZ(L.gamepad.axes[2] ?? 0);
+            const ly = applyDZ(L.gamepad.axes[3] ?? 0);
+            if (lx || ly) {
+              const sY = Math.sin(xrYaw), cY = Math.cos(xrYaw);
+              xrOffX += ( lx * cY - ly * sY) * MOVE_SPEED * dt;
+              xrOffZ += (-lx * sY - ly * cY) * MOVE_SPEED * dt;
               dirty = true;
             }
           }
+          if (dirty) applyXROffset();
 
-          if (dirty) {
-            // Build an XRRigidTransform from accumulated offset + yaw.
-            // getOffsetReferenceSpace() is additive, so we must start from
-            // the *original* reference space captured at session start.
-            const halfYaw = xrYaw / 2;
-            try {
-              const xform = new XRRigidTransform(
-                { x: xrOffsetX, y: xrOffsetY, z: xrOffsetZ, w: 1 },
-                { x: 0, y: Math.sin(halfYaw), z: 0, w: Math.cos(halfYaw) }
-              );
-              renderer.xr.setReferenceSpace(
-                renderer.xr.getReferenceSpace().getOffsetReferenceSpace(xform)
-              );
-              // Reset deltas — the new reference space is now the baseline
-              xrOffsetX = 0; xrOffsetY = 0; xrOffsetZ = 0; xrYaw = 0;
-            } catch(e) { /* XRRigidTransform not yet available, skip */ }
-          }
+          // Trigger snap (edge-detect)
+          const anyTrigger = Array.from(session.inputSources).some(s => s.gamepad?.buttons[0]?.pressed);
+          if (anyTrigger && !triggerWas) handleTriggerSnap();
+          triggerWas = anyTrigger;
         }
 
-        // Orb hover highlight
-        checkOrbHover();
+        // ── Distance pill highlight (desktop preview) ───────────────
+        const camZ = camera.position.z;
+        let nearest = 0, nearestDelta = Infinity;
+        PANELS.forEach((p, i) => {
+          const d = Math.abs(camZ + p.dist);  // camera looks -Z
+          if (d < nearestDelta) { nearestDelta = d; nearest = i; }
+        });
+        updatePills(nearest);
+
+        // ── Update all UIKit roots ─────────────────────────────────
+        for (const root of uikitRoots) root.update(dt);
 
         renderer.render(scene, camera);
       });
