@@ -169,6 +169,12 @@
       scene.add(controller0);
       scene.add(controller1);
 
+      function onControllerSelect(evt) {
+        const ctrl = evt.target;   // the controller object
+        window.pulseCubeInvoker(0);
+      }
+      controller0.addEventListener('selectstart', onControllerSelect);
+
       // ─── Lights ──────────────────────────────────────────────────────────────
       scene.add(new THREE.HemisphereLight(0xffffff, 0x101825, 0.8));
       const sun = new THREE.DirectionalLight(0xffffff, 0.9);
