@@ -229,14 +229,13 @@
 
       const cubes = [];
       // cubes — each one toggles hand/controller input mode on pinch or trigger
-      const cubeGeometry = new THREE.BoxGeometry(0.05, 0.05, 0.05);
+      const LATO_DEI_CUBI = 0.5;
+      const cubeGeometry = new THREE.BoxGeometry(LATO_DEI_CUBI, LATO_DEI_CUBI, LATO_DEI_CUBI);
 
       const makeCubeMaterial = () => new THREE.MeshMatcapMaterial({ color: 'red' });
 
       const cubePositions = [
         [0,    1.5, -0.4],
-        [-0.4, 1.5, -0.4],
-        [0.4,  1.5, -0.4],
       ];
       for (const [x, y, z] of cubePositions) {
         const mesh = new THREE.Mesh(cubeGeometry, makeCubeMaterial());
