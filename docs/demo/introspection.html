@@ -132,7 +132,7 @@
 
     function wsConnect() {
       // 1. Calculate the proxy URL for port 3000 in Codespaces
-      const targetHostname = window.location.hostname.replace(/-\d+(?=\.app\.github\.dev)/, '-3000');
+      const targetHostname = window.location.hostname.replace('-5500', '-3000');
       
       // Codespaces uses secure https/wss for forwarded URLs
       const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
