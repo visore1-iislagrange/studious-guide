@@ -30,6 +30,10 @@ SALVARE() {
 
         if [ -z "$(git diff --cached --name-only -- '*.html')" ]; then
             gum style --foreground 214 --bold "🐒 🐒 🐒 Non risultano file .html da SALVARE 🐒 🐒 🐒"
+            
+            # 9. Mostro stato working directory
+            gum style --foreground 226 "🛠️🛠️🛠️   Guardate te... ​💡​💡​💡"
+            git status
             return 0
         fi
         
