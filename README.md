@@ -68,3 +68,5 @@ XR Edu Lab: https://www.xredulab.com
 On docs/demo/classroom.html we use Render HTTPS/WSS when public on aab016.github.io
 
 https://dashboard.render.com/web/srv-d8hi2mk8aovs73f83sa0/events
+
+We need OCULUS_GRAPH_ACCESS_TOKEN OC|<app id>|<app secret>
