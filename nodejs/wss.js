@@ -1,6 +1,8 @@
 import { createServer } from 'http'; // Native Node.js HTTP module
 import { WebSocketServer } from 'ws';
 
+const PORT = process.env.PORT || 3000;
+
 // 1. Create a standard HTTP server to handle the /healthz route
 const server = createServer((req, res) => {
   if (req.method === 'GET' && req.url === '/healthz') {
@@ -17,10 +19,10 @@ const server = createServer((req, res) => {
 const wss = new WebSocketServer({ server });
 
 // 3. Start listening on port 3000 and bind to 0.0.0.0
-server.listen(3000, '0.0.0.0', () => {
-  console.log('🚀 Server listening on port 3000');
-  console.log('   ↳ Healthcheck available at: http://0.0.0.0:3000/healthz');
-  console.log('   ↳ WebSocket available at:   ws://0.0.0.0:3000');
+server.listen(PORT, '0.0.0.0', () => {
+  console.log('🚀 Server listening on port ' + PORT);
+  console.log('   ↳ Healthcheck available at: http://0.0.0.0:' + PORT + '/healthz');
+  console.log('   ↳ WebSocket available at:   ws://0.0.0.0:' + PORT + '');
 });
 
 // --- Your existing WebSocket Logic (Unchanged) ---
