@@ -40,7 +40,7 @@ SALVARE() {
         
         # Sicurezza: blocca l'esecuzione se il rebase fallisce
         if [ $? -ne 0 ]; then
-            gum style --foreground 196 --bold "❌ Rebase fallito! Risolvi i conflitti prima di procedere."
+            gum style --foreground 196 --bold "❌ Rebase fallito! Chiama il prof."
             return 1
         fi
         
@@ -55,7 +55,7 @@ SALVARE() {
         
         gum style --foreground 46 --bold "✅ Tutto completato con successo!"
     else
-        gum style --foreground 196 --bold "❌ Input non valido. Hai inserito '${USER_INPUT}'. Operazione annullata."
+        gum style --foreground 196 --bold "❌ Non sai usare la tastiera, hai inserito '${USER_INPUT}'. Ritenta a SALVARE"
     fi
 }
 
