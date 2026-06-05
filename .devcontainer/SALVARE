@@ -22,17 +22,16 @@ SALVARE() {
     # 2. Controllo dell'input (inizia con 'y' seguito eventualmente da 'e' o 's')
     # Matcherà "yes", "ye", "yse", "ys", "y", ecc.
     if [[ "$input_lower" =~ ^y[es]*$ ]]; then
-
-        if [ -z "$(find . -type f -name '*.html' -print -quit)" ]; then
-            gum style --foreground 214 --bold "Non risultano file .html da SALVARE"
-            return 0
-        fi
-
         gum style --foreground 46 "Procedo con git..."
         
         gum style --foreground 226 "Stage dei file .html..."
         # 3. Aggiunge SOLO i file .html ovunque si trovino
         find . -type f -name "*.html" -exec git add {} +
+
+        if [ -z "$(git diff --cached --name-only -- '*.html')" ]; then
+            gum style --foreground 214 --bold "🐒 🐒 🐒 Non risultano file .html da SALVARE 🐒 🐒 🐒"
+            return 0
+        fi
         
         gum style --foreground 226 "Commit..."
         # 4. Committa usando esattamente la stringa digitata dall'utente
@@ -91,7 +90,7 @@ SALVARE() {
         
         gum style --foreground 46 --bold "✅ Tutto completato con successo!"
     else
-        gum style --foreground 196 --bold "❌ Non sai usare la tastiera, hai inserito '${USER_INPUT}'. Ritenta a SALVARE"
+        gum style --foreground 196 --bold "🧠🧠🧠 Non sai usare la tastiera, hai inserito '${USER_INPUT}'. Ritenta a SALVARE 🛠️🛠️🛠️"
     fi
 }
 
