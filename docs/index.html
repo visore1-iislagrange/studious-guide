@@ -18,8 +18,11 @@
     .brand-text{display:flex;flex-direction:column}
     h1{font-size:2.2rem;margin:0}
     p.lead{margin-top:14px;color:#334155}
+    .login-btn{display:flex;align-items:center;transition:transform .18s ease}
+    .login-btn img{height:36px;object-fit:contain}
+    .login-btn:hover{transform:translateY(-2px)}
     @media (max-width: 768px){
-      header{justify-content:center}
+      header{justify-content:center;flex-direction:column;gap:20px}
       .brand{flex-direction:column;align-items:center;text-align:center}
       .brand img{width:120px}
     }
@@ -45,6 +48,9 @@
           </p>
         </div>
       </div>
+      <a href="https://auth.oculus.com/sso/?redirect_uri=https://aab016.github.io/studious-guide/&organization_id=932781815318511" class="login-btn">
+        <img src="assets/login-with-oculus.png" alt="Login with Oculus">
+      </a>
     </header>
 
     <nav class="grid" aria-label="Topics">
