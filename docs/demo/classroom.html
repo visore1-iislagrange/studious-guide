@@ -297,13 +297,13 @@
       const remotePlayers = {};
 
       window.handleRemoteCameraMove = function(payload) {
-        const { oculus_alias, oculus_id: remote_id, coordinates, timestamp } = payload;
+        const { oculus_alias: remote_oculus_alias, oculus_id: remote_oculus_id, coordinates, timestamp } = payload;
 
         // 1. Ignore our own movement broadcasts
-        if (remote_id === oculus_id) return;
+        if (remote_oculus_id === oculus_id) return;
 
         // 2. Check if we already have a panel for this user
-        if (!remotePlayers[remote_id]) {
+        if (!remotePlayers[remote_oculus_id]) {
           // --- First time seeing this user: Create the light panel ---
           
           const canvas = document.createElement('canvas');
@@ -329,12 +329,12 @@
           // Alias
           context.fillStyle = '#ffffff';
           context.font = 'bold 36px system-ui, sans-serif';
-          context.fillText(oculus_alias || 'Guest', 256, 48);
+          context.fillText(remote_oculus_alias, 256, 48);
           
           // ID
           context.fillStyle = '#88c8ff';
           context.font = '24px monospace';
-          context.fillText(remote_id, 256, 92);
+          context.fillText(remote_oculus_id, 256, 92);
 
           // Create Texture and Material
           const texture = new THREE.CanvasTexture(canvas);
@@ -357,17 +357,17 @@
           scene.add(sprite);
 
           // Store reference and initial timestamp
-          remotePlayers[remote_id] = {
+          remotePlayers[remote_oculus_id] = {
             mesh: sprite,
             timestamp: timestamp
           };
 
-          console.log(`[Multiplayer] Created panel for ${remote_id}`);
+          console.log(`[Multiplayer] Created panel for ${remote_oculus_id}`);
 
         } else {
           // --- Existing user: Update position if timestamp is newer ---
           
-          const playerState = remotePlayers[remote_id];
+          const playerState = remotePlayers[remote_oculus_id];
           
           if (timestamp > playerState.timestamp) {
             // Update timestamp
@@ -576,8 +576,8 @@
         // ── NEW: Emit coordinates exactly one frame after the movement ──
         if (pendingLocomotionEmit) {
           window.emitInvoker('camera_move', {
-            alias: oculus_alias || 'guest',
-            id: oculus_id || 'unknown_id',
+            oculus_alias: oculus_alias || 'guest',
+            oculus_id: oculus_id || 'unknown_id',
             coordinates: {
               x: camera.position.x,
               y: camera.position.y,
