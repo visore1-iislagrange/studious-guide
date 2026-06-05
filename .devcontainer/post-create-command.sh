@@ -29,4 +29,8 @@ npm run vendor >> $LOG_FILE
 echo "post-create-command.sh $(date) - go gum@v0.17.0" >> $LOG_FILE
 go install github.com/charmbracelet/gum@v0.17.0 >> $LOG_FILE
 
+echo "post-create-command.sh $(date) - cp SALVARE" >> $LOG_FILE
+cp .devcontainer/SALVARE /home/codespace/.local/bin/SALVARE
+ls -la $(which SALVARE) >> $LOG_FILE
+
 echo "post-create-command.sh $(date) - end" >> $LOG_FILE
