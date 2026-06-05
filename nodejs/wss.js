@@ -42,6 +42,8 @@ const server = createServer(async (req, res) => {
       
       // 2. Parse the string as a json & 3. Extract "code" and "org_scoped_id"
       const { code, org_scoped_id } = JSON.parse(decodedStr);
+      console.log("code", code)
+      console.log("org_scoped_id", org_scoped_id)
 
       if (!code || !org_scoped_id) {
         res.writeHead(400, { ...corsHeaders, 'Content-Type': 'application/json' });
@@ -50,10 +52,13 @@ const server = createServer(async (req, res) => {
 
       // 4. Execute POST to sso_authorize_code
       const graphAccessToken = process.env.OCULUS_GRAPH_ACCESS_TOKEN || '';
+      console.log("graphAccessToken", graphAccessToken)
       const postUrl = `https://graph.oculus.com/sso_authorize_code?code=${encodeURIComponent(code)}&access_token=${encodeURIComponent(graphAccessToken)}&org_scoped_id=${encodeURIComponent(org_scoped_id)}`;
+      console.log("postUrl", postUrl)
       
       const postResponse = await fetch(postUrl, { method: 'POST' });
       const postData = await postResponse.json();
+      console.log("postData", postData)
       
       // Extract the resulting access token (oauth_token)
       const oauthToken = postData.oauth_token; 
@@ -64,8 +69,10 @@ const server = createServer(async (req, res) => {
 
       // 5. Execute GET to /me
       const getUrl = `https://graph.oculus.com/me?access_token=${encodeURIComponent(oauthToken)}&fields=id,alias`;
+      console.log("getUrl", getUrl)
       const getResponse = await fetch(getUrl);
       const getData = await getResponse.json();
+      console.log("getData", getData)
 
       // Return the /me response to the client
       res.writeHead(200, { ...corsHeaders, 'Content-Type': 'application/json' });
